@@ -6,7 +6,7 @@ import { makeRedirectUri } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { useNavigation } from '@react-navigation/native';
 import { UserContext } from '../UserContext';
-import { retrieveUser, storeUser } from '../storage'; 
+import { retrieveUser, storeUser } from '../server/storage'; 
 import { API_IP } from '../config';
 
 WebBrowser.maybeCompleteAuthSession();

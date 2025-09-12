@@ -5,7 +5,7 @@ import { View, Dimensions, Text, StyleSheet, ActivityIndicator, FlatList, LogBox
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import VideoCell from '../components/VideoCell';
 import { UserContext } from '../UserContext';
-import { fetchBatch, submitRating } from '../serverApi';
+import { fetchBatch, submitRating } from '../server/serverApi';
 
 // This is just to ignore a specific warning that's not critical.
 LogBox.ignoreLogs([

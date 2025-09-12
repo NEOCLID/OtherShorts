@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
 import { UserContext } from '../UserContext';
-import { fetchCountries, updateUserProfile } from '../serverApi';
+import { fetchCountries, updateUserProfile } from '../server/serverApi';
 
 const isWeb = Platform.OS === 'web';
 

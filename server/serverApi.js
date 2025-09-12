@@ -1,5 +1,5 @@
 // serverApi.js
-import { API_IP } from './config';
+import { API_IP } from '../config';
 
 // Define the base API URL ONCE.
 const API = `${API_IP}/api`;
