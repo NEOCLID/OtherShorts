@@ -4,7 +4,8 @@ const cors     = require('cors');
 const { Client } = require('pg');
 const multer   = require('multer');
 const crypto   = require('crypto');
-require('dotenv').config();
+const path     = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
 app.use(cors());
@@ -102,21 +103,31 @@ app.post('/api/uploadTakeout', upload.single('file'), async (req,res)=>{
     return res.status(500).json({ error: 'Server configuration error: Missing API Key.' });
   }
 
-  let json;
+  let urls = [];
+  const fileContent = req.file.buffer.toString('utf8');
+
+  // Try to parse as JSON first
   try {
-    json = JSON.parse(req.file.buffer.toString('utf8'));
-    if (!Array.isArray(json)) {
-        throw new Error("Invalid format: The uploaded file should contain a JSON array.");
+    const json = JSON.parse(fileContent);
+    if (Array.isArray(json)) {
+      urls = json.map(e => e.titleUrl || '').filter(Boolean);
+    } else {
+      throw new Error("Invalid JSON format");
     }
-  } catch (e) {
-    console.error("JSON Parse Error:", e.message);
-    return res.status(400).json({ error: 'Invalid file format. Please upload the original watch-history.json.' });
+  } catch (jsonError) {
+    // If JSON parsing fails, try parsing as HTML
+    console.log("Not JSON format, trying HTML parsing...");
+    const hrefMatches = fileContent.matchAll(/href="(https:\/\/www\.youtube\.com\/(?:watch\?v=|shorts\/)([A-Za-z0-9_-]{11})[^"]*)"/g);
+    urls = Array.from(hrefMatches, match => match[1]);
+
+    if (urls.length === 0) {
+      return res.status(400).json({ error: 'Invalid file format. Please upload watch-history.json or 시청 기록.html.' });
+    }
   }
 
   try {
     const ids = [...new Set(
-      json.map(e => e.titleUrl || '')
-          .map(u => u.match(/(?:v=|\/shorts\/)([A-Za-z0-9_-]{11})/)?.[1])
+      urls.map(u => u.match(/(?:v=|\/shorts\/)([A-Za-z0-9_-]{11})/)?.[1])
           .filter(Boolean)
     )];
 
@@ -139,12 +150,13 @@ app.post('/api/uploadTakeout', upload.single('file'), async (req,res)=>{
       if (ytData.items && ytData.items.length > 0) {
         ytData.items.forEach(v=>{
             if (!v.contentDetails?.duration) return;
-            const match = v.contentDetails.duration.match(/PT(?:(\d+)M)?(\d+)S/);
+            const match = v.contentDetails.duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
             if (!match) return;
-            const minutes = parseInt(match[1] || '0', 10);
-            const seconds = parseInt(match[2] || '0', 10);
-            const totalSeconds = (minutes * 60) + seconds;
-            if (totalSeconds < 61) {
+            const hours = parseInt(match[1] || '0', 10);
+            const minutes = parseInt(match[2] || '0', 10);
+            const seconds = parseInt(match[3] || '0', 10);
+            const totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+            if (totalSeconds <= 180) {
                 keep.push(v.id);
             }
         });
@@ -152,7 +164,7 @@ app.post('/api/uploadTakeout', upload.single('file'), async (req,res)=>{
     }
 
     if (keep.length === 0) {
-      return res.status(400).json({ error: 'No videos under 61 seconds (Shorts) were found in your history.' });
+      return res.status(400).json({ error: 'No videos under 180 seconds were found in your history.' });
     }
 
     const sql = `INSERT INTO videos (url, user_id)

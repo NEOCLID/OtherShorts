@@ -5,30 +5,37 @@ import * as Google from 'expo-auth-session/providers/google';
 import { makeRedirectUri } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { UserContext } from '../UserContext';
-import { retrieveUser, storeUser } from '../server/storage'; 
-import { API_IP } from '../config';
+import { retrieveUser, storeUser } from '../server/storage';
+import { API_IP, GOOGLE_CLIENT_IDS } from '../config';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignInScreen() {
     const navigation = useNavigation();
     const { setUser } = useContext(UserContext);
+    const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const checkSavedUser = async () => {
-            const savedUser = await retrieveUser();
-            if (savedUser) {
-                setUser(savedUser);
-                const needsProfile = savedUser.age == null || savedUser.gender == null || savedUser.country_id == null;
-                if (needsProfile) {
-                    navigation.replace('ProfileSetup');
+            try {
+                const savedUser = await retrieveUser();
+                if (savedUser) {
+                    setUser(savedUser);
+                    const needsProfile = savedUser.age == null || savedUser.gender == null || savedUser.country_id == null;
+                    if (needsProfile) {
+                        navigation.replace('ProfileSetup');
+                    } else {
+                        // FIX: Navigate to the tab container
+                        navigation.replace('MainApp');
+                    }
                 } else {
-                    // FIX: Navigate to the tab container
-                    navigation.replace('MainApp');
+                    setIsLoading(false);
                 }
-            } else {
+            } catch (error) {
+                console.error("Error in checkSavedUser:", error);
                 setIsLoading(false);
             }
         };
@@ -36,11 +43,13 @@ export default function SignInScreen() {
     }, []);
     
     const [request, response, promptAsync] = Google.useAuthRequest({
-        expoClientId: '140681675069-noq0r6udh39lnmijqp3evje0c4cocm3m.apps.googleusercontent.com',
-        webClientId: '140681675069-g7rlgiqs9tfjktbsqfd9nabd8oqbcl6f.apps.googleusercontent.com',
-        androidClientId: '140681675069-ka222qfd442ccfd254e628dociefo87g.apps.googleusercontent.com',
+        expoClientId: GOOGLE_CLIENT_IDS.expoClientId,
+        webClientId: GOOGLE_CLIENT_IDS.webClientId,
+        androidClientId: GOOGLE_CLIENT_IDS.androidClientId,
         scopes: ['profile', 'email'],
         redirectUri: makeRedirectUri({ useProxy: true }),
+        // Force account selection, especially important for web
+        prompt: Platform.OS === 'web' ? 'select_account' : 'consent',
     });
 
     useEffect(() => {
@@ -89,8 +98,8 @@ export default function SignInScreen() {
     return (
         <View style={styles.container}>
             <Image source={require('../assets/youtube_logo.png')} style={styles.logo} resizeMode="contain" />
-            <Text style={styles.title}>OtherShorts</Text>
-            <Button title="Sign in with Google" disabled={!request} onPress={() => { setIsLoading(true); promptAsync(); }} />
+            <Text style={styles.title}>{t('signIn.title')}</Text>
+            <Button title={t('signIn.signInButton')} disabled={!request} onPress={() => { setIsLoading(true); promptAsync(); }} />
         </View>
     );
 }

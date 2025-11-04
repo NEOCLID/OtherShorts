@@ -1,0 +1,90 @@
+{
+  "signIn": {
+    "title": "OtherShorts",
+    "signInButton": "Google로 로그인",
+    "signingIn": "로그인 중..."
+  },
+  "profileSetup": {
+    "title": "프로필 완성하기",
+    "guidanceText": "이 정보는 익명으로 처리되며, 다른 사용자가 다양한 인구통계의 콘텐츠를 발견하는 데 도움이 됩니다.",
+    "age": "나이",
+    "agePlaceholder": "예: 25",
+    "gender": "성별",
+    "male": "남성",
+    "female": "여성",
+    "other": "기타",
+    "country": "국가",
+    "saveButton": "저장하고 계속하기",
+    "ageError": "13세에서 100세 사이의 올바른 나이를 입력해주세요.",
+    "countryError": "국가를 선택해주세요.",
+    "saveError": "프로필 저장에 실패했습니다.",
+    "loadError": "국가 목록을 불러올 수 없습니다."
+  },
+  "uploadTakeout": {
+    "title": "Shorts 추가하기",
+    "subtitle": "'watch-history.json' 또는 '시청 기록.html' 파일을 업로드하여 시청한 Shorts를 공유하세요.",
+    "uploadButton": "Takeout 파일 업로드",
+    "uploading": "업로드 중...",
+    "skipButton": "나중에 하기",
+    "selected": "선택됨:",
+    "successTitle": "✅ 업로드 성공",
+    "successMessage": "Shorts가 풀에 추가되었습니다.",
+    "failedTitle": "❌ 업로드 실패",
+    "errorTitle": "❌ 오류",
+    "errorMessage": "업로드 중 예상치 못한 오류가 발생했습니다."
+  },
+  "home": {
+    "title": "홈",
+    "loading": "로딩 중...",
+    "rateContent": "콘텐츠 평가",
+    "ratePolitics": "정치 성향",
+    "leftWing": "진보",
+    "rightWing": "보수",
+    "submit": "제출",
+    "submitting": "제출 중...",
+    "nextBatch": "다음 배치 불러오는 중...",
+    "errorNoVideos": "동영상을 찾을 수 없습니다. 시청 기록을 업로드하세요.",
+    "errorFetch": "동영상을 불러오는 데 실패했습니다. 다시 시도해주세요.",
+    "errorSubmit": "평가 제출에 실패했습니다."
+  },
+  "settings": {
+    "title": "설정",
+    "language": "언어",
+    "korean": "한국어",
+    "english": "English",
+    "autoplayVideos": "동영상 자동재생",
+    "contactUs": "문의하기",
+    "contactDescription": "질문이나 피드백이 있으신가요? 언제든지 연락주세요.",
+    "sendFeedback": "피드백 보내기",
+    "githubIssue": "GitHub 저장소에 이슈를 등록할 수도 있습니다.",
+    "profile": "프로필",
+    "editProfile": "프로필 수정",
+    "age": "나이",
+    "gender": "성별",
+    "country": "국가",
+    "saveProfile": "프로필 저장",
+    "saving": "저장 중...",
+    "profileSaved": "프로필이 저장되었습니다.",
+    "signOut": "로그아웃",
+    "signOutConfirm": "로그아웃 하시겠습니까?",
+    "signingOut": "로그아웃 중..."
+  },
+  "profile": {
+    "title": "사용자 프로필",
+    "demographics": "인구통계",
+    "age": "나이",
+    "gender": "성별",
+    "country": "국가",
+    "notAvailable": "정보 없음",
+    "uploadWatchHistory": "시청 기록 업로드",
+    "logOut": "로그아웃",
+    "videosUploaded": "업로드된 동영상",
+    "loading": "로딩 중..."
+  },
+  "common": {
+    "loading": "로딩 중...",
+    "error": "오류",
+    "cancel": "취소",
+    "ok": "확인"
+  }
+}

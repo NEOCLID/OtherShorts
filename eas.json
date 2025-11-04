@@ -7,10 +7,24 @@
         "developmentClient": true,
         "distribution": "internal"
       },
-      "preview": {},
-      "production": {
+      "preview": {
         "android": {
           "buildType": "apk"
+        }
+      },
+      "production": {
+        "android": {
+          "buildType": "app-bundle"
+        },
+        "env": {
+          "NODE_ENV": "production"
+        }
+      }
+    },
+    "submit": {
+      "production": {
+        "android": {
+          "serviceAccountKeyPath": "./google-play-service-account.json"
         }
       }
     }

@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useContext, useCallback } from 'react';
 import { View, Dimensions, Text, StyleSheet, ActivityIndicator, FlatList, LogBox } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useTranslation } from 'react-i18next';
 import VideoCell from '../components/VideoCell';
 import { UserContext } from '../UserContext';
 import { fetchBatch, submitRating } from '../server/serverApi';
@@ -16,6 +17,7 @@ const { height: screenHeight } = Dimensions.get('window');
 
 export default function HomeScreen() {
     const { user } = useContext(UserContext);
+    const { t } = useTranslation();
     const [videos, setVideos] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
@@ -31,32 +33,47 @@ export default function HomeScreen() {
     const isFetchingRef = useRef(false);
 
     // This function is responsible for loading more videos from the server.
-    const loadVideos = useCallback(async () => {
+    const loadVideos = useCallback(async (retryWithReset = false) => {
         if (!user?.id || isFetchingRef.current) return;
-        
+
         isFetchingRef.current = true;
         setIsFetchingMore(true);
         try {
-            const data = await fetchBatch(user.id, Array.from(seenUsersRef.current), Array.from(submittedRatings));
+            // If retrying, clear the seen users to allow cycling back
+            const seenUsers = retryWithReset ? [] : Array.from(seenUsersRef.current);
+
+            const data = await fetchBatch(user.id, seenUsers, Array.from(submittedRatings));
             if (data?.videos?.length > 0) {
+                // If we reset and found videos, clear the seen users set
+                if (retryWithReset) {
+                    seenUsersRef.current.clear();
+                }
                 seenUsersRef.current.add(data.videos[0].uploaderId);
                 setVideos(prev => {
                     const existingUrls = new Set(prev.map(v => v.url));
                     const newVideos = data.videos.filter(v => !existingUrls.has(v.url));
                     return [...prev, ...newVideos];
                 });
-            } else if (videos.length === 0) {
-                 setError("No videos found. Upload your watch history.");
+            } else {
+                // No videos found - try resetting seen users if we haven't already
+                if (!retryWithReset && seenUsersRef.current.size > 0) {
+                    console.log("No videos found, resetting seen users and retrying...");
+                    isFetchingRef.current = false;
+                    await loadVideos(true);
+                    return;
+                } else if (videos.length === 0) {
+                    setError("home.errorNoVideos");
+                }
             }
         } catch (err) {
             console.error("Failed to load videos:", err);
-            setError("Failed to load videos. Please try again.");
+            setError("home.errorFetch");
         } finally {
             isFetchingRef.current = false;
             setIsFetchingMore(false);
             if (isLoading) setIsLoading(false);
         }
-    }, [user?.id, isLoading, videos.length]);
+    }, [user?.id, isLoading, videos.length, submittedRatings]);
 
     // We load the initial set of videos when the component mounts.
     useEffect(() => {
@@ -117,7 +134,7 @@ export default function HomeScreen() {
     ), [currentIndex, isPaused, videoRatings, submittedRatings, isSubmitting, handleSlidingComplete, handleRatingSubmit]);
 
     if (isLoading) return <View style={styles.centerContainer}><ActivityIndicator size="large" color="#FF0000" /></View>;
-    if (error) return <View style={styles.centerContainer}><Text style={styles.errorText}>{error}</Text></View>;
+    if (error) return <View style={styles.centerContainer}><Text style={styles.errorText}>{t(error)}</Text></View>;
 
     return (
         <GestureDetector gesture={tapGesture}>

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { View, Button, Text, Alert, Platform, StyleSheet } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import { useTranslation } from 'react-i18next';
 import { API_IP } from '../config';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
@@ -10,6 +11,7 @@ const isWeb = Platform.OS === 'web';
 export default function UploadTakeoutScreen() {
   const navigation = useNavigation();
   const { params: { userId } } = useRoute();
+  const { t } = useTranslation();
   const [fileName, setFileName] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
@@ -31,15 +33,15 @@ export default function UploadTakeoutScreen() {
         const resBody = await res.json().catch(() => null);
 
         if (res.ok) {
-            Alert.alert('✅ Upload Success', 'Your shorts have been added to the pool.');
+            Alert.alert(t('uploadTakeout.successTitle'), t('uploadTakeout.successMessage'));
             navigation.replace('MainApp');
         } else {
-            const errorMessage = resBody?.error || 'Upload failed. The file might be invalid or empty.';
-            Alert.alert('❌ Upload Failed', errorMessage);
+            const errorMessage = resBody?.error || t('uploadTakeout.errorMessage');
+            Alert.alert(t('uploadTakeout.failedTitle'), errorMessage);
         }
     } catch (err) {
         console.error("Upload error:", err);
-        Alert.alert('❌ Error', 'An unexpected error occurred during upload.');
+        Alert.alert(t('uploadTakeout.errorTitle'), t('uploadTakeout.errorMessage'));
     } finally {
         setIsUploading(false);
     }
@@ -47,14 +49,14 @@ export default function UploadTakeoutScreen() {
 
   return (
     <View style={styles.container}>
-        <Text style={styles.title}>Add Your Shorts</Text>
-        <Text style={styles.subtitle}>Upload your 'watch-history.json' file to share your shorts.</Text>
+        <Text style={styles.title}>{t('uploadTakeout.title')}</Text>
+        <Text style={styles.subtitle}>{t('uploadTakeout.subtitle')}</Text>
         <View style={styles.buttonContainer}>
-            <Button title={isUploading ? "Uploading..." : "Upload Takeout File"} onPress={handleUpload} disabled={isUploading} />
-            {fileName ? <Text style={styles.fileNameText}>Selected: {fileName}</Text> : null}
+            <Button title={isUploading ? t('uploadTakeout.uploading') : t('uploadTakeout.uploadButton')} onPress={handleUpload} disabled={isUploading} />
+            {fileName ? <Text style={styles.fileNameText}>{t('uploadTakeout.selected')} {fileName}</Text> : null}
         </View>
         <View style={styles.buttonContainer}>
-            <Button title="Skip For Now" onPress={() => navigation.replace('MainApp')} color="#888" disabled={isUploading}/>
+            <Button title={t('uploadTakeout.skipButton')} onPress={() => navigation.replace('MainApp')} color="#888" disabled={isUploading}/>
         </View>
     </View>
   );

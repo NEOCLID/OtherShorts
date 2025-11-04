@@ -1,4 +1,4 @@
-import { API_IP } from './config';
+import { API_IP } from '../config';
 const API_BASE_URL = API_IP;
 
 /**

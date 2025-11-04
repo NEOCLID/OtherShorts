@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --version:*)",
+      "Bash(npm --version:*)",
+      "Bash(test:*)",
+      "Bash(npx expo:*)",
+      "Bash(timeout 10 npx expo start:*)",
+      "Bash(/dev/null)",
+      "Bash(psql:*)",
+      "Bash(where:*)",
+      "Bash(node -e:*)",
+      "Bash(timeout 5 node:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(npm install:*)",
+      "Bash(del:*)",
+      "Bash(./gradlew clean:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(npx expo-cli --version)",
+      "Bash(eas whoami:*)",
+      "Bash(git add:*)",
+      "Bash(git reset:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

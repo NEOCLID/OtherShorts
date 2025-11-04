@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platfor
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { UserContext } from '../UserContext';
 import { fetchCountries, updateUserProfile } from '../server/serverApi';
 
@@ -43,10 +44,18 @@ const SegmentedControl = ({ options, selectedOption, onSelectOption }) => (
 export default function ProfileSetupScreen() {
     const navigation = useNavigation();
     const { user, setUser } = useContext(UserContext);
+    const { t } = useTranslation();
 
     const [age, setAge] = useState(user?.age ? String(user.age) : '');
-    const [gender, setGender] = useState(user?.gender || 'Male');
+    const [gender, setGender] = useState(user?.gender || 'Male'); // Store English value in DB
     const [countryId, setCountryId] = useState(user?.country_id);
+
+    // Map between display labels and database values
+    const genderOptions = [
+        { label: t('profileSetup.male'), value: 'Male' },
+        { label: t('profileSetup.female'), value: 'Female' },
+        { label: t('profileSetup.other'), value: 'Other' }
+    ];
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [countries, setCountries] = useState([]);
@@ -56,17 +65,17 @@ export default function ProfileSetupScreen() {
         fetchCountries().then(list => {
             setCountries(list);
             if (countryId === undefined && list.length > 0) setCountryId(list[0].id);
-        }).catch(err => setError("Could not load country list.")).finally(()=> setLoading(false));
-    }, []);
+        }).catch(err => setError(t('profileSetup.loadError'))).finally(()=> setLoading(false));
+    }, [t]);
 
     const handleSave = async () => {
         const ageNum = parseInt(age, 10);
         if (isNaN(ageNum) || ageNum < 13 || ageNum > 100) {
-            setError("Please enter a valid age between 13 and 100.");
+            setError(t('profileSetup.ageError'));
             return;
         }
         if (!countryId) {
-            setError("Please select a country.");
+            setError(t('profileSetup.countryError'));
             return;
         }
         setLoading(true);
@@ -78,7 +87,7 @@ export default function ProfileSetupScreen() {
             // Navigate to Takeout upload screen as per spec, passing the user ID
             navigation.replace('UploadTakeout', { userId: updatedUser.id });
         } catch (e) {
-            setError('Failed to save profile.');
+            setError(t('profileSetup.saveError'));
         } finally {
             setLoading(false);
         }
@@ -91,30 +100,33 @@ export default function ProfileSetupScreen() {
         >
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <View style={styles.innerContainer}>
-                    <Text style={styles.title}>Complete Your Profile</Text>
+                    <Text style={styles.title}>{t('profileSetup.title')}</Text>
                     <Text style={styles.guidanceText}>
-                        This information is anonymous and helps others discover content from different demographics.
+                        {t('profileSetup.guidanceText')}
                     </Text>
 
                     {error && <Text style={styles.errorText}>{error}</Text>}
 
-                    <Text style={styles.label}>Age</Text>
+                    <Text style={styles.label}>{t('profileSetup.age')}</Text>
                     <TextInput
                         style={styles.input}
                         value={age}
                         onChangeText={setAge}
                         keyboardType="number-pad"
-                        placeholder="e.g., 25"
+                        placeholder={t('profileSetup.agePlaceholder')}
                     />
 
-                    <Text style={styles.label}>Gender</Text>
+                    <Text style={styles.label}>{t('profileSetup.gender')}</Text>
                     <SegmentedControl
-                        options={['Male', 'Female', 'Other']}
-                        selectedOption={gender}
-                        onSelectOption={setGender}
+                        options={genderOptions.map(g => g.label)}
+                        selectedOption={genderOptions.find(g => g.value === gender)?.label || genderOptions[0].label}
+                        onSelectOption={(label) => {
+                            const selected = genderOptions.find(g => g.label === label);
+                            if (selected) setGender(selected.value);
+                        }}
                     />
 
-                    <Text style={styles.label}>Country</Text>
+                    <Text style={styles.label}>{t('profileSetup.country')}</Text>
                     <View style={styles.pickerContainer}>
                         <Picker
                             selectedValue={countryId}
@@ -124,9 +136,9 @@ export default function ProfileSetupScreen() {
                             {countries.map(c => <Picker.Item key={c.id} label={c.name} value={c.id} />)}
                         </Picker>
                     </View>
-                    
+
                     <TouchableOpacity style={styles.button} onPress={handleSave} disabled={loading}>
-                        {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>Save and Continue</Text>}
+                        {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>{t('profileSetup.saveButton')}</Text>}
                     </TouchableOpacity>
                 </View>
             </ScrollView>

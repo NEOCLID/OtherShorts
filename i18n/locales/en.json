@@ -1,0 +1,91 @@
+{
+  "signIn": {
+    "title": "Welcome to OtherShorts",
+    "subtitle": "Explore and rate YouTube Shorts from other users' watch histories",
+    "signInButton": "Sign in with Google",
+    "signingIn": "Signing in..."
+  },
+  "profileSetup": {
+    "title": "Complete Your Profile",
+    "guidanceText": "This information is anonymous and helps others discover content from different demographics.",
+    "age": "Age",
+    "agePlaceholder": "e.g., 25",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "country": "Country",
+    "saveButton": "Save and Continue",
+    "ageError": "Please enter a valid age between 13 and 100.",
+    "countryError": "Please select a country.",
+    "saveError": "Failed to save profile.",
+    "loadError": "Could not load country list."
+  },
+  "uploadTakeout": {
+    "title": "Add Your Shorts",
+    "subtitle": "Upload your 'watch-history.json' or '시청 기록.html' file to share your shorts.",
+    "uploadButton": "Upload Takeout File",
+    "uploading": "Uploading...",
+    "skipButton": "Skip For Now",
+    "selected": "Selected:",
+    "successTitle": "✅ Upload Success",
+    "successMessage": "Your shorts have been added to the pool.",
+    "failedTitle": "❌ Upload Failed",
+    "errorTitle": "❌ Error",
+    "errorMessage": "An unexpected error occurred during upload."
+  },
+  "home": {
+    "title": "Home",
+    "loading": "Loading...",
+    "rateContent": "Rate Content",
+    "ratePolitics": "Political Orientation",
+    "leftWing": "Left",
+    "rightWing": "Right",
+    "submit": "Submit",
+    "submitting": "Submitting...",
+    "nextBatch": "Loading next batch...",
+    "errorNoVideos": "No videos found. Upload your watch history.",
+    "errorFetch": "Failed to load videos. Please try again.",
+    "errorSubmit": "Failed to submit rating."
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "korean": "한국어",
+    "english": "English",
+    "autoplayVideos": "Autoplay Videos",
+    "contactUs": "Contact Us",
+    "contactDescription": "Have questions or feedback? We'd love to hear from you.",
+    "sendFeedback": "Send Feedback",
+    "githubIssue": "You can also open an issue on our GitHub repository.",
+    "profile": "Profile",
+    "editProfile": "Edit Profile",
+    "age": "Age",
+    "gender": "Gender",
+    "country": "Country",
+    "saveProfile": "Save Profile",
+    "saving": "Saving...",
+    "profileSaved": "Profile saved successfully.",
+    "signOut": "Sign Out",
+    "signOutConfirm": "Are you sure you want to sign out?",
+    "signingOut": "Signing out..."
+  },
+  "profile": {
+    "title": "User Profile",
+    "demographics": "Demographics",
+    "age": "Age",
+    "gender": "Gender",
+    "country": "Country",
+    "notAvailable": "N/A",
+    "uploadWatchHistory": "Upload Watch History",
+    "logOut": "Log Out",
+    "videosUploaded": "Videos Uploaded",
+    "loading": "Loading..."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "cancel": "Cancel",
+    "ok": "OK"
+  }
+}

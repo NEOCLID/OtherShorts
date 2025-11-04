@@ -2,12 +2,14 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { UserContext } from '../UserContext';
 import { clearUser } from '../server/storage'; 
 
 export default function ProfileScreen() {
     const navigation = useNavigation();
     const { user, setUser } = useContext(UserContext);
+    const { t } = useTranslation();
 
     const handleLogout = async () => {
         await clearUser();
@@ -19,18 +21,18 @@ export default function ProfileScreen() {
         <View style={styles.container}>
             {user ? (
                 <View style={styles.profileSection}>
-                    <Text style={styles.name}>User Profile</Text>
-                    <Text style={styles.info}>Age: {user.age || 'N/A'}</Text>
-                    <Text style={styles.info}>Gender: {user.gender || 'N/A'}</Text>
+                    <Text style={styles.name}>{t('profile.title')}</Text>
+                    <Text style={styles.info}>{t('profile.age')}: {user.age || t('profile.notAvailable')}</Text>
+                    <Text style={styles.info}>{t('profile.gender')}: {user.gender || t('profile.notAvailable')}</Text>
                 </View>
             ) : null}
-            
+
             <TouchableOpacity style={styles.button} onPress={() => user && navigation.navigate('UploadTakeout', { userId: user.id })} disabled={!user}>
-                <Text style={styles.buttonText}>Upload Watch History</Text>
+                <Text style={styles.buttonText}>{t('profile.uploadWatchHistory')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={[styles.button, { backgroundColor: '#c0392b' }]} onPress={handleLogout}>
-                <Text style={styles.buttonText}>Log Out</Text>
+                <Text style={styles.buttonText}>{t('profile.logOut')}</Text>
             </TouchableOpacity>
         </View>
     );

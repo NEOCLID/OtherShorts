@@ -1,11 +1,12 @@
 // App.js
-import 'react-native-gesture-handler'; 
+import 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { UserProvider } from './UserContext';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import './i18n/config'; // Initialize i18n
 
 // Import screens
 import SignInScreen from './screens/SignInScreen';
