@@ -33,8 +33,16 @@ yarn-error.*
 # local env files
 .env
 .env*.local
+.env.production
 android/gradle.properties
 
 # typescript
 *.tsbuildinfo
 memo.txt
+
+# temporary files
+error.txt
+*.html
+
+# misc
+git/
