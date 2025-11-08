@@ -10,8 +10,12 @@ echo "======================================"
 echo ""
 
 # Configuration
-S3_BUCKET="othershorts.com"
+S3_BUCKET="othershorts"
+AWS_REGION="ap-southeast-2"  # Sydney region
 CLOUDFRONT_DISTRIBUTION_ID=""  # Optional: Add your CloudFront distribution ID here
+
+# Files to preserve (won't be deleted during sync)
+PRESERVE_FILES=("delete.html" "privacy.html")
 
 # Colors for output
 RED='\033[0;31m'
@@ -33,25 +37,35 @@ if [ ! -d "dist" ]; then
 fi
 
 echo -e "${GREEN}[1/4] Uploading files to S3...${NC}"
+
+# Build exclude parameters for preserved files
+EXCLUDE_ARGS="--exclude index.html --exclude metadata.json"
+for file in "${PRESERVE_FILES[@]}"; do
+    EXCLUDE_ARGS="$EXCLUDE_ARGS --exclude $file"
+done
+
+# Sync files with exclusions
 aws s3 sync dist/ s3://${S3_BUCKET}/ \
+    --region ${AWS_REGION} \
     --delete \
     --cache-control "public, max-age=31536000, immutable" \
-    --exclude "index.html" \
-    --exclude "metadata.json"
+    $EXCLUDE_ARGS
 
 # Upload index.html with no-cache (always fetch latest)
 echo -e "${GREEN}[2/4] Uploading index.html (no cache)...${NC}"
 aws s3 cp dist/index.html s3://${S3_BUCKET}/index.html \
+    --region ${AWS_REGION} \
     --cache-control "no-cache, no-store, must-revalidate" \
     --content-type "text/html"
 
 # Upload metadata.json with no-cache
 aws s3 cp dist/metadata.json s3://${S3_BUCKET}/metadata.json \
+    --region ${AWS_REGION} \
     --cache-control "no-cache, no-store, must-revalidate" \
     --content-type "application/json"
 
 echo -e "${GREEN}[3/4] Verifying deployment...${NC}"
-aws s3 ls s3://${S3_BUCKET}/ --recursive --human-readable --summarize | tail -n 2
+aws s3 ls s3://${S3_BUCKET}/ --region ${AWS_REGION} --recursive --human-readable --summarize | tail -n 2
 
 # Invalidate CloudFront cache (optional)
 if [ -n "$CLOUDFRONT_DISTRIBUTION_ID" ]; then
@@ -68,5 +82,10 @@ echo ""
 echo -e "${GREEN}✅ Deployment complete!${NC}"
 echo ""
 echo "Your app is now live at:"
-echo "  https://${S3_BUCKET}"
+echo "  http://${S3_BUCKET}.s3-website-${AWS_REGION}.amazonaws.com"
+echo ""
+echo -e "${YELLOW}Preserved files (not modified):${NC}"
+for file in "${PRESERVE_FILES[@]}"; do
+    echo "  - $file"
+done
 echo ""
