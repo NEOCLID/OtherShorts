@@ -46,3 +46,7 @@ error.txt
 
 # misc
 git/
+
+# documentation with sensitive data
+DEPLOYMENT_SUMMARY.md
+SECURITY_NOTICE.md
