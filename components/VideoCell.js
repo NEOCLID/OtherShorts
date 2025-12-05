@@ -11,10 +11,8 @@ const VideoCell = ({
   item,
   isCurrent,
   isPaused,
-  ratingValue,
   isSubmitted,
   isSubmitting,
-  onSlidingComplete, // Pass the new prop down
   onSubmit,
   onVideoUnavailable,
 }) => {
@@ -24,11 +22,6 @@ const VideoCell = ({
     onSubmit(item, values);
   }, [item, onSubmit]);
 
-  // Same here, useCallback for performance.
-  const handleSlidingComplete = useCallback((value) => {
-    onSlidingComplete(item.url, value);
-  }, [item.url, onSlidingComplete]);
-
   return (
     <View style={styles.container}>
       <VideoCard
@@ -36,10 +29,12 @@ const VideoCell = ({
         isCurrent={isCurrent}
         isPaused={isPaused}
         onVideoUnavailable={onVideoUnavailable}
+        uploaderAge={item.age}
+        uploaderGender={item.gender}
+        uploaderCountry={item.country}
       />
       <VideoUI
-        initialValue={ratingValue}
-        onSlidingComplete={handleSlidingComplete}
+        videoUrl={item.url}
         onSubmit={handleSubmit}
         isSubmitted={isSubmitted}
         isSubmitting={isSubmitting}
