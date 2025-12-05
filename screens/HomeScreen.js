@@ -25,12 +25,13 @@ export default function HomeScreen() {
     const [error, setError] = useState(null);
     const [isPaused, setIsPaused] = useState(false);
     
-    const [videoRatings, setVideoRatings] = useState({});
     const [submittedRatings, setSubmittedRatings] = useState(new Set());
     const [isSubmitting, setIsSubmitting] = useState(null);
 
     const seenUsersRef = useRef(new Set());
     const isFetchingRef = useRef(false);
+    const BATCH_TARGET = 5;
+    const MAX_BATCH_REQUESTS = 3;
 
     // This function is responsible for loading more videos from the server.
     const loadVideos = useCallback(async (retryWithReset = false) => {
@@ -39,31 +40,54 @@ export default function HomeScreen() {
         isFetchingRef.current = true;
         setIsFetchingMore(true);
         try {
-            // If retrying, clear the seen users to allow cycling back
-            const seenUsers = retryWithReset ? [] : Array.from(seenUsersRef.current);
+            if (retryWithReset) {
+                seenUsersRef.current.clear();
+            }
 
-            const data = await fetchBatch(user.id, seenUsers, Array.from(submittedRatings));
-            if (data?.videos?.length > 0) {
-                // If we reset and found videos, clear the seen users set
-                if (retryWithReset) {
+            const collected = [];
+            const collectedUrls = new Set();
+            let attempts = 0;
+
+            while (collected.length < BATCH_TARGET && attempts < MAX_BATCH_REQUESTS) {
+                const seenUsers = Array.from(seenUsersRef.current);
+                const submitted = Array.from(submittedRatings);
+                const data = await fetchBatch(user.id, seenUsers, submitted);
+                attempts += 1;
+
+                if (data?.videos?.length > 0) {
+                    const uploaderId = data.videos[0]?.uploaderId;
+                    if (uploaderId) {
+                        seenUsersRef.current.add(uploaderId);
+                    }
+
+                    const uniques = data.videos.filter(v => {
+                        if (collectedUrls.has(v.url)) return false;
+                        collectedUrls.add(v.url);
+                        return true;
+                    });
+                    collected.push(...uniques);
+                    // If the uploader has fewer than 5 videos, grab the next uploader immediately
+                    if (uniques.length < BATCH_TARGET) {
+                        continue;
+                    }
+                } else if (!retryWithReset && seenUsersRef.current.size > 0) {
+                    console.log("No videos found, resetting seen users and retrying...");
                     seenUsersRef.current.clear();
+                    retryWithReset = true;
+                } else {
+                    if (videos.length === 0 && collected.length === 0) {
+                        setError("home.errorNoVideos");
+                    }
+                    break;
                 }
-                seenUsersRef.current.add(data.videos[0].uploaderId);
+            }
+
+            if (collected.length > 0) {
                 setVideos(prev => {
                     const existingUrls = new Set(prev.map(v => v.url));
-                    const newVideos = data.videos.filter(v => !existingUrls.has(v.url));
+                    const newVideos = collected.filter(v => !existingUrls.has(v.url));
                     return [...prev, ...newVideos];
                 });
-            } else {
-                // No videos found - try resetting seen users if we haven't already
-                if (!retryWithReset && seenUsersRef.current.size > 0) {
-                    console.log("No videos found, resetting seen users and retrying...");
-                    isFetchingRef.current = false;
-                    await loadVideos(true);
-                    return;
-                } else if (videos.length === 0) {
-                    setError("home.errorNoVideos");
-                }
             }
         } catch (err) {
             console.error("Failed to load videos:", err);
@@ -87,10 +111,16 @@ export default function HomeScreen() {
     const onViewableItemsChanged = useRef(({ viewableItems }) => {
         if (viewableItems.length > 0) {
             setCurrentIndex(viewableItems[0].index);
+        } else {
+            setCurrentIndex(-1); // Nothing visible, pause everything
         }
     }).current;
 
-    const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
+    const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 70 }).current;
+    const handleMomentumScrollEnd = useCallback(({ nativeEvent }) => {
+        const newIndex = Math.round(nativeEvent.contentOffset.y / screenHeight);
+        setCurrentIndex(Math.max(newIndex, 0));
+    }, []);
 
     // This function sends the user's rating to the server.
     const handleRatingSubmit = useCallback(async (video, { rating, political }) => {
@@ -107,12 +137,7 @@ export default function HomeScreen() {
         } finally {
             setIsSubmitting(null);
         }
-    }, [user?.id, submittedRatings]); // Dependency on videoRatings is removed
-    
-    // When the user is done sliding, we update the rating value.
-    const handleSlidingComplete = useCallback((url, value) => {
-        setVideoRatings(prev => ({ ...prev, [url]: value }));
-    }, []);
+    }, [user?.id, submittedRatings]);
 
     const handleVideoUnavailable = useCallback((url) => {
         setVideos(prevVideos => prevVideos.filter(video => video.url !== url));
@@ -124,14 +149,12 @@ export default function HomeScreen() {
             item={item}
             isCurrent={index === currentIndex}
             isPaused={isPaused}
-            ratingValue={videoRatings[item.url] ?? 50}
             isSubmitted={submittedRatings.has(item.url)}
             isSubmitting={isSubmitting === item.url}
-            onSlidingComplete={handleSlidingComplete}
             onSubmit={handleRatingSubmit}
             onVideoUnavailable={handleVideoUnavailable}
         />
-    ), [currentIndex, isPaused, videoRatings, submittedRatings, isSubmitting, handleSlidingComplete, handleRatingSubmit]);
+    ), [currentIndex, isPaused, submittedRatings, isSubmitting, handleRatingSubmit, handleVideoUnavailable]);
 
     if (isLoading) return <View style={styles.centerContainer}><ActivityIndicator size="large" color="#FF0000" /></View>;
     if (error) return <View style={styles.centerContainer}><Text style={styles.errorText}>{t(error)}</Text></View>;
@@ -146,8 +169,10 @@ export default function HomeScreen() {
                     onViewableItemsChanged={onViewableItemsChanged}
                     viewabilityConfig={viewabilityConfig}
                     pagingEnabled
+                    onMomentumScrollEnd={handleMomentumScrollEnd}
                     onEndReached={loadVideos}
                     onEndReachedThreshold={3}
+                    removeClippedSubviews
                     showsVerticalScrollIndicator={false}
                     ListFooterComponent={isFetchingMore ? <ActivityIndicator style={{ margin: 20 }} color="#FFF" /> : null}
                     windowSize={5}

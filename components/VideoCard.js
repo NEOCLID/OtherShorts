@@ -13,7 +13,15 @@ const getYoutubeVideoId = (url) => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
-const VideoCard = React.memo(({ videoUrl, isCurrent, isPaused, onVideoUnavailable }) => {
+const VideoCard = React.memo(({
+  videoUrl,
+  isCurrent,
+  isPaused,
+  onVideoUnavailable,
+  uploaderAge,
+  uploaderGender,
+  uploaderCountry,
+}) => {
   const isFocused = useIsFocused();
   const videoId = getYoutubeVideoId(videoUrl);
   
@@ -34,11 +42,22 @@ const VideoCard = React.memo(({ videoUrl, isCurrent, isPaused, onVideoUnavailabl
 
   // The video should only play if it's the current one, not paused, the screen is focused, AND the app is active.
   const shouldPlay = isCurrent && !isPaused && isFocused && appStateStatus === 'active';
+  const uploaderLabel = [
+    uploaderAge != null ? `${uploaderAge}y` : null,
+    uploaderGender || null,
+    uploaderCountry || null,
+  ].filter(Boolean).join(' | ') || 'Uploader info missing';
+  const infoOverlay = (
+    <View style={styles.infoBadge}>
+      <Text style={styles.infoText}>{uploaderLabel}</Text>
+    </View>
+  );
 
   if (!videoId) {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Invalid Video URL</Text>
+        {infoOverlay}
       </View>
     );
   }
@@ -54,8 +73,18 @@ const VideoCard = React.memo(({ videoUrl, isCurrent, isPaused, onVideoUnavailabl
       }
     }, []);
 
+    useEffect(() => {
+      if (!playerRef.current) return;
+      if (shouldPlay) {
+        playerRef.current.playVideo?.();
+      } else {
+        playerRef.current.pauseVideo?.();
+      }
+    }, [shouldPlay]);
+
     return (
       <View style={styles.container}>
+        {infoOverlay}
         <YoutubeIframe
           ref={playerRef}
           height={StyleSheet.absoluteFill.height}
@@ -74,7 +103,7 @@ const VideoCard = React.memo(({ videoUrl, isCurrent, isPaused, onVideoUnavailabl
         {/* A little pause icon so you know what's up. */}
         {isCurrent && isPaused && (
            <View style={styles.pauseOverlay}>
-             <Text style={styles.pauseText}>⏸️</Text>
+             <Text style={styles.pauseText}>Paused</Text>
            </View>
         )}
       </View>
@@ -85,18 +114,30 @@ const VideoCard = React.memo(({ videoUrl, isCurrent, isPaused, onVideoUnavailabl
   // On the web, we use a standard iframe and control it with postMessage.
   const playerRef = useRef(null);
 
+  // SIMPLE: Control playback based on shouldPlay, and always pause when not current
   useEffect(() => {
-    if (playerRef.current) {
-      const command = shouldPlay ? 'playVideo' : 'pauseVideo';
-      playerRef.current.contentWindow.postMessage(JSON.stringify({ event: 'command', func: command, args: '' }), '*');
+    const iframe = playerRef.current;
+    if (!iframe || !iframe.contentWindow) return;
+
+    try {
+      // SIMPLE RULE: If not current OR should not play, pause. Otherwise play.
+      const command = isCurrent && shouldPlay ? 'playVideo' : 'pauseVideo';
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ event: 'command', func: command, args: '' }),
+        '*'
+      );
+    } catch (err) {
+      console.log('Video control error:', err);
     }
-  }, [shouldPlay]);
+  }, [isCurrent, shouldPlay]); // Re-run whenever EITHER changes
   
   // Add `enablejsapi=1` to the iframe source to allow controlling it with JavaScript.
-  const iframeSource = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=0&mute=0&controls=0&rel=0&showinfo=0&modestbranding=1&loop=1&playlist=${videoId}`;
+  // Add `hl=ko` to force Korean language interface
+  const iframeSource = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=0&mute=0&controls=0&rel=0&showinfo=0&modestbranding=1&loop=1&playlist=${videoId}&hl=ko`;
 
   return (
     <View style={styles.container}>
+      {infoOverlay}
       <iframe
         ref={playerRef}
         key={videoUrl} // The key should not change, so the iframe doesn't get re-created.
@@ -109,12 +150,12 @@ const VideoCard = React.memo(({ videoUrl, isCurrent, isPaused, onVideoUnavailabl
       />
        {isCurrent && isPaused && (
            <View style={styles.pauseOverlay}>
-             <Text style={styles.pauseText}>⏸️</Text>
+             <Text style={styles.pauseText}>Paused</Text>
            </View>
         )}
     </View>
   );
-});''
+});
 
 export default VideoCard;
 
@@ -139,5 +180,20 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.75)',
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
+  },
+  infoBadge: {
+    position: 'absolute',
+    top: 20,
+    left: 12,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    zIndex: 2,
+  },
+  infoText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
