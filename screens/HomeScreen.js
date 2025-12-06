@@ -30,6 +30,7 @@ export default function HomeScreen() {
 
     const seenUsersRef = useRef(new Set());
     const isFetchingRef = useRef(false);
+    const currentIndexRef = useRef(0);
     const BATCH_TARGET = 5;
     const MAX_BATCH_REQUESTS = 3;
 
@@ -108,15 +109,30 @@ export default function HomeScreen() {
 
     // A simple tap on the screen will pause or unpause the video.
     const tapGesture = Gesture.Tap().onEnd(() => setIsPaused(prev => !prev));
+    useEffect(() => {
+        currentIndexRef.current = currentIndex;
+    }, [currentIndex]);
+
     const onViewableItemsChanged = useRef(({ viewableItems }) => {
-        if (viewableItems.length > 0) {
-            setCurrentIndex(viewableItems[0].index);
-        } else {
+        if (viewableItems.length === 0) {
             setCurrentIndex(-1); // Nothing visible, pause everything
+            return;
         }
+        const sorted = [...viewableItems].sort((a, b) => a.index - b.index);
+        const nextIndex = Math.max(sorted[0].index, 0);
+        setCurrentIndex(nextIndex);
     }).current;
 
-    const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 70 }).current;
+    const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 80 }).current;
+
+    const handleScroll = useCallback(({ nativeEvent }) => {
+        const offsetY = nativeEvent.contentOffset?.y || 0;
+        const newIndex = Math.max(Math.round(offsetY / screenHeight), 0);
+        if (newIndex !== currentIndexRef.current) {
+            setCurrentIndex(newIndex);
+        }
+    }, []);
+
     const handleMomentumScrollEnd = useCallback(({ nativeEvent }) => {
         const newIndex = Math.round(nativeEvent.contentOffset.y / screenHeight);
         setCurrentIndex(Math.max(newIndex, 0));
@@ -168,7 +184,13 @@ export default function HomeScreen() {
                     keyExtractor={(item, i) => `${item.url}-${i}`}
                     onViewableItemsChanged={onViewableItemsChanged}
                     viewabilityConfig={viewabilityConfig}
+                    onScroll={handleScroll}
+                    scrollEventThrottle={16}
                     pagingEnabled
+                    snapToInterval={screenHeight}
+                    snapToAlignment="start"
+                    decelerationRate="fast"
+                    disableIntervalMomentum
                     onMomentumScrollEnd={handleMomentumScrollEnd}
                     onEndReached={loadVideos}
                     onEndReachedThreshold={3}
