@@ -34,7 +34,7 @@ Update your local `.env` file (NOT committed to git):
 DB_USER=postgres
 DB_HOST=othershorts-db.xxxxxxxxxx.us-east-1.rds.amazonaws.com
 DB_NAME=othershorts
-DB_PASSWORD=REMOVED_SECRET
+DB_PASSWORD=YOUR_RDS_PASSWORD
 DB_PORT=5432
 ```
 
@@ -88,7 +88,7 @@ psql -h othershorts-db.xxxxxxxxxx.us-east-1.rds.amazonaws.com \
      -d othershorts \
      -f database/schema.sql
 
-# You'll be prompted for the password: REMOVED_SECRET
+# You'll be prompted for the RDS password.
 ```
 
 ### Alternative: Using pgAdmin (GUI)
@@ -99,7 +99,7 @@ psql -h othershorts-db.xxxxxxxxxx.us-east-1.rds.amazonaws.com \
    - **Port**: 5432
    - **Database**: `othershorts`
    - **Username**: `postgres`
-   - **Password**: `REMOVED_SECRET`
+  - **Password**: `YOUR_RDS_PASSWORD`
 3. Right-click on `othershorts` database > Query Tool
 4. Copy contents of `database/schema.sql` and execute
 
@@ -190,7 +190,7 @@ When deploying to your production server (e.g., api.othershorts.com):
    DB_USER=postgres
    DB_HOST=othershorts-db.xxxxxxxxxx.us-east-1.rds.amazonaws.com
    DB_NAME=othershorts
-   DB_PASSWORD=REMOVED_SECRET
+   DB_PASSWORD=YOUR_RDS_PASSWORD
    DB_PORT=5432
    ```
 

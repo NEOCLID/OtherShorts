@@ -62,9 +62,9 @@ Railway should auto-detect, but if needed:
 ```bash
 # Database (your existing RDS)
 DB_USER=postgres
-DB_HOST=othershorts-db.cs9ok84w6fz9.us-east-1.rds.amazonaws.com
+DB_HOST=othershorts-db.xxxxxxx.us-east-1.rds.amazonaws.com
 DB_NAME=othershorts
-DB_PASSWORD=REMOVED_SECRET
+DB_PASSWORD=YOUR_RDS_PASSWORD
 DB_PORT=5432
 
 # Google OAuth (from your .env)
