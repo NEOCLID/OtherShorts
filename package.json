@@ -14,6 +14,9 @@
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
+  "overrides": {
+    "react-server-dom-webpack": "^19.0.2"
+  },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
     "@expo/vector-icons": "^14.1.0",
@@ -30,7 +33,7 @@
     "expo": "~52.0.47",
     "expo-auth-session": "~6.0.3",
     "expo-document-picker": "~13.0.3",
-    "expo-module-scripts": "^4.0.5",
+    "expo-module-scripts": "^5.0.8",
     "expo-random": "^14.0.1",
     "expo-status-bar": "~2.0.1",
     "expo-web-browser": "~14.0.2",
